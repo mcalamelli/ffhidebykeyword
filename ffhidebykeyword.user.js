@@ -5,7 +5,7 @@
 // @include        http://friendfeed.com/*
 // @match          http://friendfeed.com/*
 // @run-at document-start
-// @version        0.6.2
+// @version        0.6.3
 // ==/UserScript==
 
 // the array that contains the keywords
@@ -22,12 +22,13 @@ else
 // fresh: is this a new hide, or we're hiding using an existing keyword?
 function hide(kw, fresh) {
    var posts = document.getElementsByClassName("text");
+   var re = new RegExp(kw, "i");
    var hideCount = 0;
 
    // walking through posts to search unwanted keyword
    for (var i = 0; i <= posts.length - 1; i++) {
       var entry = posts[i].innerHTML;
-      if ((entry.search(kw) != -1) && (kw != "")){
+      if ((entry.search(re) != -1) && (kw != "")){
          // keyword found
          hideCount++;
          // get the post
@@ -102,7 +103,8 @@ function checkNewPost(txt) {
    
    for (var i = 0; i < kwList.length; i++) {
       var kw = kwList[i].getAttribute("id").substr(2);
-      if (txt.search(kw) != -1) {
+      var re = new RegExp(kw, "i");
+      if (txt.search(re) != -1) {
          hide(kw, false);
          break;
       }
