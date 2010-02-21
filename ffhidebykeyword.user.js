@@ -5,17 +5,14 @@
 // @include        http://friendfeed.com/*
 // @match          http://friendfeed.com/*
 // @run-at document-start
-// @version        0.6.3
+// @version        0.6.6
 // ==/UserScript==
 
-// the array that contains the keywords
-if (window.chrome == undefined)
-   // not Chrome
-   unsafeWindow.keywordArray = new Array();
-else
-   // Chrome don't defines unsafeWindow
-   keywordArray = new Array();
-   
+// pushing the array that contains the keywords
+var v = document.createElement("script");
+v.setAttribute("type","text/javascript");
+v.innerHTML = "var keywordArray = new Array();";
+document.body.appendChild(v);
 
 // hide posts using selected keyword
 // kw: the keyword
@@ -53,12 +50,30 @@ function hide(kw, fresh) {
          }
       }
    }
-   
+
    if (hideCount != 0) {
       // unwanted keyword detected, add keyword to the keyword's list
-      if (true == fresh)
-         document.getElementById("hbkw").innerHTML += "<p id=\"id" + kw + "\" class=\"hkw\" style=\"margin:0pt\">" + kw + " (" + hideCount + ")  [<a href=\"#\" onclick=\"unhide('" + kw + "')\">Unhide</a>]</p>";
-      else {
+      if (true == fresh) {
+         if (!window.chrome) {
+            // Firefox
+            document.getElementById("hbkw").innerHTML += "<p id=\"id" + kw + "\" class=\"hkw\" style=\"margin:0pt\">" + kw + " (" + hideCount + ")  [<a href=\"#\" onclick=\"unhide('" + kw + "')\">Unhide</a>]</p>";
+         } else {
+            // Chrome
+            var hbkw = document.getElementById("hbkw");
+            var _p = document.createElement("p");
+            _p.setAttribute("id", "id" + kw);
+            _p.setAttribute("class", "hkw");
+            _p.setAttribute("style", "margin:0pt");
+            _p.innerHTML = kw + " (" + hideCount + ")  [";
+            var _a = document.createElement("a");
+            _a.setAttribute("href","#");
+            _a.setAttribute("onclick","unhide('" + kw +"')");
+            _a.innerText += "Unhide";
+            _p.appendChild(_a);
+            _p.innerHTML += "]";
+            hbkw.appendChild(_p);
+         }
+      } else {
          // we're hiding a new post using existing keyword, we've to update hidden count
          var hiddenCount = parseInt(document.getElementById("id" + kw).innerHTML.match(/[0-9]+/));
          document.getElementById("id" + kw).innerHTML = document.getElementById("id" + kw).innerHTML.replace(/[0-9]+/, (hiddenCount + 1).toString());
@@ -145,7 +160,10 @@ function hidePostsFromStoredKeywords() {
 
 // push local function into DOM 
 function embedInDOM(s) {
-   document.body.appendChild(document.createElement('script')).innerHTML=s.toString().replace(/([\s\S]*?return;){2}([\s\S]*)}/,'$2');
+   var scpt = document.createElement('script');
+   scpt.setAttribute("type","text/javascript");
+   scpt.innerHTML = s.toString().replace(/([\s\S]*?return;){2}([\s\S]*)}/,'$2');
+   document.body.appendChild(scpt);
 }
 
 //******************************************
@@ -184,9 +202,11 @@ FFBoxBody[0].insertBefore(hbkwSect, FFSection.nextSibling);
 // add a listener for DOM changes
 document.addEventListener('DOMNodeInserted', function (event) {
    var eventTarget = event.target;
-   var targetClass = eventTarget.getAttribute("class");
-   if (("l_entry entry" == targetClass) || ("l_entry entry private" == targetClass)) {
-      // new post. ok, a rescan is needed now
-      checkNewPost(eventTarget.getElementsByClassName("body")[0].getElementsByClassName("ebody")[0].getElementsByClassName("title")[0].getElementsByClassName("text")[0].innerHTML);
+   if (eventTarget.toString() == "[object HTMLDivElement]") {
+      var targetClass = eventTarget.getAttribute("class");
+      if (("l_entry entry" == targetClass) || ("l_entry entry private" == targetClass)) {
+         // new post. ok, a rescan is needed now
+         checkNewPost(eventTarget.getElementsByClassName("body")[0].getElementsByClassName("ebody")[0].getElementsByClassName("title")[0].getElementsByClassName("text")[0].innerHTML);
+      }
    }
 }, false);
