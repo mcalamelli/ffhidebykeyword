@@ -5,7 +5,7 @@
 // @include        http://friendfeed.com/*
 // @match          http://friendfeed.com/*
 // @run-at document-start
-// @version        0.6.6
+// @version        0.6.7
 // ==/UserScript==
 
 // pushing the array that contains the keywords
