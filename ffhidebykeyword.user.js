@@ -128,7 +128,10 @@ function checkNewPost(txt) {
 
 // store the keywords into a cookie for a future use (aka refresh)
 function storeKeywordsInCookie(kws) {
-   document.cookie = "ffhbk_kws" + "=" + kws + "" + "; path=/";
+   var _now = new Date();
+   var _exp = new Date();
+   _exp.setTime(_now.getTime() + 20*365*24*60*60*1000);
+   document.cookie = "ffhbk_kws" + "=" + kws + "" + "; path=/; expires=" + _exp.toGMTString();
 }
 
 // restore the keywords from the cookie
