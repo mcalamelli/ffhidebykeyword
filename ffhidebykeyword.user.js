@@ -1,11 +1,12 @@
 // ==UserScript==
-// @name           FriendFeedHideByKeyword
-// @namespace      http://www.mcalamelli.net
-// @description    Hide posts using keywords
-// @include        http://friendfeed.com/*
-// @match          http://friendfeed.com/*
-// @run-at document-start
-// @version        0.6.7
+// @name          FriendFeedHideByKeyword
+// @namespace     http://www.mcalamelli.net
+// @description   Hide posts using keywords
+// @include       http://friendfeed.com/*
+// @exclude       http://friendfeed.com/filter/direct
+// @match         http://friendfeed.com/*
+// @run-at        document-start
+// @version       0.6.8
 // ==/UserScript==
 
 // pushing the array that contains the keywords
@@ -136,19 +137,19 @@ function storeKeywordsInCookie(kws) {
 
 // restore the keywords from the cookie
 function restoreKeywordsFromCookie() {
-	var cookieName = "ffhbk_kws=";
-	var cookieArray = document.cookie.split(';');
-	
+   var cookieName = "ffhbk_kws=";
+   var cookieArray = document.cookie.split(';');
+   
    for (var i = 0; i < cookieArray.length; i++) { 
-		var cookie = cookieArray[i];
-		while (cookie.charAt(0) == ' ')
-			cookie = cookie.substring(1, cookie.length);
-		if (cookie.indexOf(cookieName) == 0) {
-			var kws = cookie.substring(cookieName.length, cookie.length);
+      var cookie = cookieArray[i];
+      while (cookie.charAt(0) == ' ')
+         cookie = cookie.substring(1, cookie.length);
+      if (cookie.indexOf(cookieName) == 0) {
+         var kws = cookie.substring(cookieName.length, cookie.length);
          return kws;
       }
-	}
-	return null;
+   }
+   return null;
 }
 
 // iterate into stored keywords and try to hide annoying posts
