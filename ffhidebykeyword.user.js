@@ -4,9 +4,7 @@
 // @description   Hide posts using keywords
 // @include       http://friendfeed.com/*
 // @exclude       http://friendfeed.com/filter/direct
-// @match         http://friendfeed.com/*
-// @run-at        document-start
-// @version       0.6.8
+// @version       0.6.8.1
 // ==/UserScript==
 
 // pushing the array that contains the keywords
@@ -206,7 +204,7 @@ FFBoxBody[0].insertBefore(hbkwSect, FFSection.nextSibling);
 // add a listener for DOM changes
 document.addEventListener('DOMNodeInserted', function (event) {
    var eventTarget = event.target;
-   if (eventTarget.toString() == "[object HTMLDivElement]") {
+   if (eventTarget.toString().search("Div")) {
       var targetClass = eventTarget.getAttribute("class");
       if (("l_entry entry" == targetClass) || ("l_entry entry private" == targetClass)) {
          // new post. ok, a rescan is needed now
