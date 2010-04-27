@@ -4,14 +4,11 @@
 // @description   Hide posts using keywords
 // @include       http://friendfeed.com/*
 // @exclude       http://friendfeed.com/filter/direct
-// @version       0.6.8.1
+// @version       0.7
 // ==/UserScript==
 
-// pushing the array that contains the keywords
-var v = document.createElement("script");
-v.setAttribute("type","text/javascript");
-v.innerHTML = "var keywordArray = new Array();";
-document.body.appendChild(v);
+// Fix Chrome bug, looks like that Chrome reloads the script (dunno why)
+if (document.getElementById("hbkw") == null) {
 
 // hide posts using selected keyword
 // kw: the keyword
@@ -36,7 +33,6 @@ function hide(kw, fresh) {
          // and hide it
          hiddenEntry.style.visibility="hidden";
          hiddenEntry.style.display="none";
-         //hiddenEntry.style.border="1px solid red"; // debug
       } else {
          if (fresh == false) {
             // keyword not found, but fresh is false, so this call came from 
@@ -58,7 +54,7 @@ function hide(kw, fresh) {
             document.getElementById("hbkw").innerHTML += "<p id=\"id" + kw + "\" class=\"hkw\" style=\"margin:0pt\">" + kw + " (" + hideCount + ")  [<a href=\"#\" onclick=\"unhide('" + kw + "')\">Unhide</a>]</p>";
          } else {
             // Chrome
-            var hbkw = document.getElementById("hbkw");
+            var hbkw = document.getElementById('kw').parentNode;
             var _p = document.createElement("p");
             _p.setAttribute("id", "id" + kw);
             _p.setAttribute("class", "hkw");
@@ -80,9 +76,8 @@ function hide(kw, fresh) {
       // and reset text entry
       document.getElementById("kw").value = "";
       
-      // place here the writing of persistent storage (cookie)
-      keywordArray.push(kw);
-      storeKeywordsInCookie(keywordArray.join(","));
+      // place here the writing of persistent storage
+      window.localStorage.setItem(kw, kw);
       return true;
    }
    return false;
@@ -97,7 +92,6 @@ function unhide(kw) {
    for (var i = 0; i < hiddenElements.length; i++) {
       hiddenElements[i].style.visibility = "visible";
       hiddenElements[i].style.display = "block";
-      //hiddenElements[i].style.border="none"; // debug
       //hiddenElements[i].removeAttribute("name"); // removing it not all hidden elements will be shown again
    }
    
@@ -106,9 +100,7 @@ function unhide(kw) {
    currentKeyword.parentNode.removeChild(currentKeyword);
    
    // update the array of keywords
-   var ii = keywordArray.indexOf(kw);
-   keywordArray.splice(ii, 1);
-   storeKeywordsInCookie(keywordArray.join(","));
+   window.localStorage.removeItem(kw);
 }
 
 // check for keywords in a new post
@@ -125,39 +117,44 @@ function checkNewPost(txt) {
    }
 }
 
-// store the keywords into a cookie for a future use (aka refresh)
-function storeKeywordsInCookie(kws) {
-   var _now = new Date();
-   var _exp = new Date();
-   _exp.setTime(_now.getTime() + 20*365*24*60*60*1000);
-   document.cookie = "ffhbk_kws" + "=" + kws + "" + "; path=/; expires=" + _exp.toGMTString();
-}
-
-// restore the keywords from the cookie
-function restoreKeywordsFromCookie() {
-   var cookieName = "ffhbk_kws=";
-   var cookieArray = document.cookie.split(';');
-   
-   for (var i = 0; i < cookieArray.length; i++) { 
-      var cookie = cookieArray[i];
-      while (cookie.charAt(0) == ' ')
-         cookie = cookie.substring(1, cookie.length);
-      if (cookie.indexOf(cookieName) == 0) {
-         var kws = cookie.substring(cookieName.length, cookie.length);
-         return kws;
-      }
-   }
-   return null;
-}
-
 // iterate into stored keywords and try to hide annoying posts
 function hidePostsFromStoredKeywords() {
-   var sKeywordsFromCookie = restoreKeywordsFromCookie();
-   if (sKeywordsFromCookie != null) {
-      var aKeywordsFromCookie = sKeywordsFromCookie.split(",");
-      for (var ii = 0; ii < aKeywordsFromCookie.length; ii++)
-         hide(aKeywordsFromCookie[ii], true);
+   if (window.localStorage.length > 0) {
+      for (var i = 0; i < window.localStorage.length; i++) {
+         k = window.localStorage.key(i);
+         hide(window.localStorage.getItem(k), true);
+      }
    }
+}
+
+// create the Hide box
+function createHideBox() {
+   // Detect useful DOM elements
+   var FFSidebar = document.getElementById("sidebar");
+   var FFBox = FFSidebar.getElementsByClassName("box");
+   var FFBoxBody = FFBox[0].getElementsByClassName("box-body");
+   var FFSection = FFBoxBody[0].childNodes[1];
+
+   // Create a new section...
+   var hbkwSect = document.createElement("div");
+   // ...and set up class and ID...
+   hbkwSect.setAttribute("class", "section");
+   hbkwSect.setAttribute("id", "hbkw");
+   // ...and add HTML elements...
+   hbkwSect.innerHTML = "<input type=\"text\" id=\"kw\" size=\"11\">";
+   hbkwSect.innerHTML += "&nbsp;<a href=\"#\" onclick=\"hide(document.getElementById('kw').value, true)\">Hide</a>";
+   if (!window.chrome) {
+      // Firefox
+      hbkwSect.innerHTML += "<script language=\"Javascript\">hidePostsFromStoredKeywords();</script>";
+   } else {
+      // Chrome
+      var _s_hbkwSect = document.createElement("script");
+      _s_hbkwSect.setAttribute("type","text/javascript");
+      _s_hbkwSect.innerText = "hidePostsFromStoredKeywords();";
+      hbkwSect.appendChild(_s_hbkwSect);
+   }
+   // ...and insert into the DOM...
+   FFBoxBody[0].insertBefore(hbkwSect, FFSection.nextSibling);
 }
 
 // push local function into DOM 
@@ -176,35 +173,18 @@ embedInDOM(hide);
 embedInDOM(unhide);
 // Push checkNewPost(txt) into the DOM
 embedInDOM(checkNewPost);
-// Push storeKeywordsInCookie(kws) into the DOM
-embedInDOM(storeKeywordsInCookie);
-// Push restoreKeywordsFromCookie() into the DOM
-embedInDOM(restoreKeywordsFromCookie); 
 // Push hidePostsFromStoredKeywords() into the DOM
 embedInDOM(hidePostsFromStoredKeywords);
+// Push createHideBox() into the DOM
+embedInDOM(createHideBox);
 
-// Detect useful DOM elements
-var FFSidebar = document.getElementById("sidebar");
-var FFBox = FFSidebar.getElementsByClassName("box");
-var FFBoxBody = FFBox[0].getElementsByClassName("box-body");
-var FFSection = FFBoxBody[0].childNodes[1];
-
-// Create a new section...
-var hbkwSect = document.createElement("div");
-// ...and set up class and ID...
-hbkwSect.setAttribute("class", "section");
-hbkwSect.setAttribute("id", "hbkw");
-// ...and add HTML elements...
-hbkwSect.innerHTML = "<input type=\"text\" id=\"kw\" size=\"11\">";
-hbkwSect.innerHTML += "&nbsp;<a href=\"#\" onclick=\"hide(document.getElementById('kw').value, true)\">Hide</a>";
-hbkwSect.innerHTML += "<script language=\"Javascript\">hidePostsFromStoredKeywords();</script>";
-// ...and insert into the DOM...
-FFBoxBody[0].insertBefore(hbkwSect, FFSection.nextSibling);
+// Create the Hide box
+createHideBox();
 
 // add a listener for DOM changes
 document.addEventListener('DOMNodeInserted', function (event) {
    var eventTarget = event.target;
-   if (eventTarget.toString().search("Div")) {
+   if ((eventTarget.toString().search("Div")) && (eventTarget.nodeType != 3)) {
       var targetClass = eventTarget.getAttribute("class");
       if (("l_entry entry" == targetClass) || ("l_entry entry private" == targetClass)) {
          // new post. ok, a rescan is needed now
@@ -212,3 +192,5 @@ document.addEventListener('DOMNodeInserted', function (event) {
       }
    }
 }, false);
+
+}
