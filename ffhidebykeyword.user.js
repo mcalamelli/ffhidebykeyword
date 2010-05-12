@@ -4,7 +4,7 @@
 // @description   Hide posts using keywords
 // @include       http://friendfeed.com/*
 // @exclude       http://friendfeed.com/filter/direct
-// @version       0.7
+// @version       0.7.1
 // ==/UserScript==
 
 // Fix Chrome bug, looks like that Chrome reloads the script (dunno why)
@@ -70,8 +70,9 @@ function hide(kw, fresh) {
          }
       } else {
          // we're hiding a new post using existing keyword, we've to update hidden count
-         var hiddenCount = parseInt(document.getElementById("id" + kw).innerHTML.match(/[0-9]+/));
-         document.getElementById("id" + kw).innerHTML = document.getElementById("id" + kw).innerHTML.replace(/[0-9]+/, (hiddenCount + 1).toString());
+         var hiddenTmp = document.getElementById("id" + kw).innerHTML.match(/\([0-9]+\)/);
+         var hiddenCount = parseInt(hiddenTmp.toString().match(/[0-9]+/));
+         document.getElementById("id" + kw).innerHTML = document.getElementById("id" + kw).innerHTML.replace(/\([0-9]+\)/, "(" + (hiddenCount + 1).toString() + ")");
       }
       // and reset text entry
       document.getElementById("kw").value = "";
