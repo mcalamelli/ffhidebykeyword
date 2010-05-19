@@ -4,7 +4,7 @@
 // @description   Hide posts using keywords
 // @include       http://friendfeed.com/*
 // @exclude       http://friendfeed.com/filter/direct
-// @version       0.7.1
+// @version       0.7.2
 // ==/UserScript==
 
 // Fix Chrome bug, looks like that Chrome reloads the script (dunno why)
@@ -142,7 +142,7 @@ function createHideBox() {
    hbkwSect.setAttribute("class", "section");
    hbkwSect.setAttribute("id", "hbkw");
    // ...and add HTML elements...
-   hbkwSect.innerHTML = "<input type=\"text\" id=\"kw\" size=\"11\">";
+   hbkwSect.innerHTML = "<input type=\"text\" id=\"kw\" size=\"11\" onkeypress=\"keyGrab(event)\">";
    hbkwSect.innerHTML += "&nbsp;<a href=\"#\" onclick=\"hide(document.getElementById('kw').value, true)\">Hide</a>";
    if (!window.chrome) {
       // Firefox
@@ -156,6 +156,19 @@ function createHideBox() {
    }
    // ...and insert into the DOM...
    FFBoxBody[0].insertBefore(hbkwSect, FFSection.nextSibling);
+}
+
+// Simple keygrabber to handle Enter key
+function keyGrab(e) {
+   var characterCode = e.keyCode ? e.keyCode : e.charCode;
+
+   switch (characterCode) {
+      case 13:
+         hide(document.getElementById('kw').value, true);
+         break;
+      default:
+      //nothing
+   }
 }
 
 // push local function into DOM 
@@ -178,6 +191,8 @@ embedInDOM(checkNewPost);
 embedInDOM(hidePostsFromStoredKeywords);
 // Push createHideBox() into the DOM
 embedInDOM(createHideBox);
+// Push keyCode() into the DOM
+embedInDOM(keyGrab);
 
 // Create the Hide box
 createHideBox();
