@@ -4,11 +4,11 @@
 // @description   Hide posts using keywords
 // @include       http://friendfeed.com/*
 // @exclude       http://friendfeed.com/filter/direct
-// @version       0.7.2
+// @version       0.7.2.1
 // ==/UserScript==
 
 // Fix Chrome bug, looks like that Chrome reloads the script (dunno why)
-if (document.getElementById("hbkw") == null) {
+//if ((document.getElementById("hbkw") == null) || (window.chrome)) {
 
 // hide posts using selected keyword
 // kw: the keyword
@@ -70,9 +70,33 @@ function hide(kw, fresh) {
          }
       } else {
          // we're hiding a new post using existing keyword, we've to update hidden count
-         var hiddenTmp = document.getElementById("id" + kw).innerHTML.match(/\([0-9]+\)/);
-         var hiddenCount = parseInt(hiddenTmp.toString().match(/[0-9]+/));
-         document.getElementById("id" + kw).innerHTML = document.getElementById("id" + kw).innerHTML.replace(/\([0-9]+\)/, "(" + (hiddenCount + 1).toString() + ")");
+         //var hiddenTmp = document.getElementById("id" + kw).innerHTML.match(/\([0-9]+\)/);
+         //var hiddenCount = parseInt(hiddenTmp.toString().match(/[0-9]+/));
+         if (document.getElementById("id" + kw) == null) {
+            if (!window.chrome) {
+               // Firefox
+               document.getElementById("hbkw").innerHTML += "<p id=\"id" + kw + "\" class=\"hkw\" style=\"margin:0pt\">" + kw + " (1)  [<a href=\"#\" onclick=\"unhide('" + kw + "')\">Unhide</a>]</p>";
+            } else {
+               // Chrome
+               var hbkw = document.getElementById('kw').parentNode;
+               var _p = document.createElement("p");
+               _p.setAttribute("id", "id" + kw);
+               _p.setAttribute("class", "hkw");
+               _p.setAttribute("style", "margin:0pt");
+               _p.innerHTML = kw + " (1)  [";
+               var _a = document.createElement("a");
+               _a.setAttribute("href","#");
+               _a.setAttribute("onclick","unhide('" + kw +"')");
+               _a.innerText += "Unhide";
+               _p.appendChild(_a);
+               _p.innerHTML += "]";
+               hbkw.appendChild(_p);
+            }
+         } else {
+            var hiddenTmp = document.getElementById("id" + kw).innerHTML.match(/\([0-9]+\)/);
+            var hiddenCount = parseInt(hiddenTmp.toString().match(/[0-9]+/));
+            document.getElementById("id" + kw).innerHTML = document.getElementById("id" + kw).innerHTML.replace(/\([0-9]+\)/, "(" + (hiddenCount + 1).toString() + ")");
+         }
       }
       // and reset text entry
       document.getElementById("kw").value = "";
@@ -106,13 +130,16 @@ function unhide(kw) {
 
 // check for keywords in a new post
 function checkNewPost(txt) {
-   var kwList = document.getElementsByClassName("hkw");
-   
-   for (var i = 0; i < kwList.length; i++) {
-      var kw = kwList[i].getAttribute("id").substr(2);
-      var re = new RegExp(kw, "i");
-      if (txt.search(re) != -1) {
-         hide(kw, false);
+   if (window.chrome)
+      win = window;
+   else
+      win = unsafeWindow;
+   for (var ii = 0; ii < win.localStorage.length; ii++) {
+      var kw1 = window.localStorage.key(ii);
+      var re1 = new RegExp(kw1, "i");
+      if (txt.search(re1) != -1) {
+         console.debug("checkNewPost => FOUND");
+         hide(kw1, false);
          break;
       }
    }
@@ -120,8 +147,12 @@ function checkNewPost(txt) {
 
 // iterate into stored keywords and try to hide annoying posts
 function hidePostsFromStoredKeywords() {
-   if (window.localStorage.length > 0) {
-      for (var i = 0; i < window.localStorage.length; i++) {
+   if (window.chrome)
+      win = window;
+   else
+      win = unsafeWindow;
+   if (win.localStorage.length > 0) {
+      for (var i = 0; i < win.localStorage.length; i++) {
          k = window.localStorage.key(i);
          hide(window.localStorage.getItem(k), true);
       }
@@ -171,6 +202,32 @@ function keyGrab(e) {
    }
 }
 
+
+// Simple keygrabber to handle "h" key
+function hGrab(e) {
+   var characterCode = e.keyCode ? e.keyCode : e.charCode;
+
+   switch (characterCode) {
+      case 72:
+      case 104:
+         //hide(document.getElementById('kw').value, true);
+         var hl = "";
+         if (window.getSelection) {
+            hl = window.getSelection();
+         } else if (document.getSelection) {
+            hl = document.getSelection();
+         } else if (document.selection) {
+            hl = document.selection.createRange().text;
+         }
+         //alert(hl);
+         document.getElementById('kw').value = hl;
+         hide(document.getElementById('kw').value, true);
+         break;
+      default:
+      //nothing
+   }
+}
+
 // push local function into DOM 
 function embedInDOM(s) {
    var scpt = document.createElement('script');
@@ -191,11 +248,16 @@ embedInDOM(checkNewPost);
 embedInDOM(hidePostsFromStoredKeywords);
 // Push createHideBox() into the DOM
 embedInDOM(createHideBox);
-// Push keyCode() into the DOM
+// Push keyGrab() into the DOM
 embedInDOM(keyGrab);
+// Push hGrab() into the DOM
+embedInDOM(hGrab);
 
 // Create the Hide box
 createHideBox();
+
+// add "h" helper
+document.addEventListener('onkeypress', hGrab, true);
 
 // add a listener for DOM changes
 document.addEventListener('DOMNodeInserted', function (event) {
@@ -209,4 +271,4 @@ document.addEventListener('DOMNodeInserted', function (event) {
    }
 }, false);
 
-}
+//}
