@@ -2,9 +2,9 @@
 // @name          FriendFeedHideByKeyword
 // @namespace     http://www.mcalamelli.net
 // @description   Hide posts using keywords
-// @include       http://friendfeed.com/*
-// @exclude       http://friendfeed.com/filter/direct
-// @version       0.7.2.1
+// @include       http*://friendfeed.com/*
+// @exclude       http*://friendfeed.com/filter/direct
+// @version       0.7.2.2
 // ==/UserScript==
 
 // Fix Chrome bug, looks like that Chrome reloads the script (dunno why)
