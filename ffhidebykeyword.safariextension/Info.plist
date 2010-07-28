@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Author</key>
+	<string>Massimiliano Calamelli</string>
+	<key>CFBundleDisplayName</key>
+	<string>FFHideByKeyword</string>
+	<key>CFBundleIdentifier</key>
+	<string>net.mcalamelli.ffhidebykeyword</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.7.2.2</string>
+	<key>CFBundleVersion</key>
+	<string>0.7.2.2</string>
+	<key>Chrome</key>
+	<dict/>
+	<key>Content</key>
+	<dict>
+		<key>Scripts</key>
+		<dict>
+			<key>End</key>
+			<array>
+				<string>ffhidebykeyword.js</string>
+			</array>
+		</dict>
+	</dict>
+	<key>Description</key>
+	<string>Hide posts using keywords</string>
+	<key>ExtensionInfoDictionaryVersion</key>
+	<string>1.0</string>
+	<key>Permissions</key>
+	<dict>
+		<key>Website Access</key>
+		<dict>
+			<key>Include Secure Pages</key>
+			<true/>
+			<key>Level</key>
+			<string>All</string>
+		</dict>
+	</dict>
+	<key>Update Manifest URL</key>
+	<string>http://www.mcalamelli.net/files/ffHideByKeyword.plist</string>
+	<key>Website</key>
+	<string>http://www.mcalamelli.com/pippo</string>
+</dict>
+</plist>
